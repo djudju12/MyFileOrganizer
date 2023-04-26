@@ -11,24 +11,24 @@ Configure as pastas e extensões que deja organizar no arquivo ```settings.json``
 {
     "diretorios": {
         "C:\\seu\\diretorio\\aqui": {
-            ".mp3": "Musicas",
-            ".pdf": "Documentos",
-            ".doc": "Documentos",
-            ".odt": "Documentos",
-            ".ods": "Documentos",
-            ".jpg": "Imagens",
-            ".png": "Imagens",
-            ".csv": "Planilhas",
-            ".xlsx": "Planilhas",
-            ".zip": "Zips",
-            ".sql": "Consultas",
-            ".pls": "Consultas",
-            ".exe": "Executaveis"
+            "*.mp3": "Musicas",
+            "*.pdf": "Documentos",
+            "*.doc": "Documentos",
+            "*.odt": "Documentos",
+            "*.ods": "Documentos",
+            "*.jpg": "Imagens",
+            "*.png": "Imagens",
+            "*.csv": "Planilhas",
+            "*.xlsx": "Planilhas",
+            "*.zip": "Zips",
+            "*.sql": "Consultas",
+            "*.pls": "Consultas",
+            "*.exe": "Executaveis"
         }
     }
 }
 ```
-Você pode usar caracters coringas no arquivo de configurações, por exemplo:
+Você pode, ou melhor, deve usar caracters coringas no arquivo de configurações, por exemplo:
 ```json
 {
     "diretorios": {

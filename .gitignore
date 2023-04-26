@@ -2,3 +2,4 @@ venvPython
 testes
 venvPython
 settings.json
+*.ps1

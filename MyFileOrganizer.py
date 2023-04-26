@@ -1,6 +1,8 @@
+import fnmatch
 import json
 import os
 from pathlib import Path
+import re
 import shutil
 import time
 from watchdog.events import FileSystemEventHandler
@@ -17,25 +19,28 @@ class MyEvent(FileSystemEventHandler):
 
 def move_files(root_dir: str) -> None: 
     files = os.listdir(root_dir)
-
-    dir_for_extesion = extesion_map(root_dir, DIRETORIO_CONFIG)
+    extension_dir_map = extesion_map(root_dir, DIRETORIO_CONFIG)
 
     for file in files:
-        _, extension = os.path.splitext(file)
-        if extension == '' or extension == '.ini':
-            continue
-        
-        try:
-            full_dir_path = os.path.join(root_dir, dir_for_extesion[extension.lower()])
-        except KeyError:
-            print(f'Extensao "{extension}" nao esta configurada')
+        if file == '' or file == '.ini' or '.' not in file:
             continue
 
-        if path_not_exist(full_dir_path):
-            os.makedirs(full_dir_path)
+        valid_dir = is_file_in_settings(root_dir, extension_dir_map, file)
+        if not valid_dir:
+            print(f'Extensao "{file}" nao esta configurada')
+            continue
+
+        if path_not_exist(valid_dir):
+            os.makedirs(valid_dir)
 
         full_file_path = os.path.join(root_dir, file)
-        shutil.move(full_file_path, full_dir_path)
+        shutil.move(full_file_path, valid_dir)
+
+def is_file_in_settings(root_dir, extensions_dir, file):
+    for ext in extensions_dir.keys():
+        if fnmatch.fnmatch(file, ext):
+            return os.path.join(root_dir, extensions_dir[ext.lower()])
+    return ""
 
 def path_not_exist(path: str):
     return not os.path.exists(path)
@@ -80,19 +85,19 @@ def initial_configs(root_dir: str) -> dict:
     settings = {}
     settings['diretorios'] = {
         root_dir: { 
-            '.mp3': 'Musicas',
-            '.pdf': 'Documentos',
-            '.doc': 'Documentos',
-            '.odt': 'Documentos',
-            '.ods': 'Documentos',
-            '.jpg': 'Imgens',
-            '.png': 'Imgens',
-            '.csv': 'Planilhas',
-            '.xlsx': 'Planilhas',
-            '.zip': 'Zips',
-            '.sql': 'Consultas',
-            '.pls': 'Consultas',
-            '.exe': 'Executaveis',
+            '*.mp3': 'Musicas',
+            '*.pdf': 'Documentos',
+            '*.doc': 'Documentos',
+            '*.odt': 'Documentos',
+            '*.ods': 'Documentos',
+            '*.jpg': 'Imgens',
+            '*.png': 'Imgens',
+            '*.csv': 'Planilhas',
+            '*.xlsx': 'Planilhas',
+            '*.zip': 'Zips',
+            '*.sql': 'Consultas',
+            '*.pls': 'Consultas',
+            '*.exe': 'Executaveis',
         }
     }
     return settings
@@ -123,10 +128,10 @@ def get_all_dirs(settings_path: str) -> list:
     return list(jsonFile['diretorios'].keys())
 
 def main():
-    write_config_file(r'C:\Users\jonathan.santos\Desktop\unisc\MyFileOrganizer\testes', '.odt', 'Documentos')
-    write_config_file(r'C:\Users\jonathan.santos\Desktop\unisc\MyFileOrganizer\testes', '.pdf', 'Documentos')
-    write_config_file(r'C:\Users\jonathan.santos\Desktop\unisc\MyFileOrganizer\testes', '.mp3', 'Musicas')
-    write_config_file(r'C:\Users\jonathan.santos\Desktop\unisc\MyFileOrganizer\testes', '.jpg', 'Imagens')
+    write_config_file(r'C:\Users\jonathan.santos\Desktop\unisc\MyFileOrganizer\testes', '*.odt', 'Documentos')
+    write_config_file(r'C:\Users\jonathan.santos\Desktop\unisc\MyFileOrganizer\testes', '*.pdf', 'Documentos')
+    write_config_file(r'C:\Users\jonathan.santos\Desktop\unisc\MyFileOrganizer\testes', '*.mp3', 'Musicas')
+    write_config_file(r'C:\Users\jonathan.santos\Desktop\unisc\MyFileOrganizer\testes', '*.jpg', 'Imagens')
 
     observe_dirs(DIRETORIO_CONFIG)
 

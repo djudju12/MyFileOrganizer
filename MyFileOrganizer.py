@@ -2,15 +2,22 @@ import json
 import os
 import shutil
 import time
+from watchdog.events import FileSystemEventHandler
+from watchdog.observers import Observer
 
 DIRETORIO_CONFIG = r'.\settings.json'
+
+class MyEvent(FileSystemEventHandler):
+    def on_any_event(self, event):
+        paths_to_check = get_all_dirs(DIRETORIO_CONFIG)
+        for path in paths_to_check:
+            move_files(path)
+
 
 def move_files(root_dir: str) -> None: 
     files = os.listdir(root_dir)
 
-    with open(DIRETORIO_CONFIG, 'r') as f:
-        config_file = json.loads(f.read())
-        diretorios = config_file['diretorios'][root_dir]
+    diretorios = get_dirs(root_dir, DIRETORIO_CONFIG)
 
     for file in files:
         _, file_ext = os.path.splitext(file)
@@ -21,29 +28,52 @@ def move_files(root_dir: str) -> None:
                 print(f'Extensao "{file_ext}" nao esta configurada')
             continue
 
-        if not os.path.exists(full_dir_path):
+        if path_not_exist(full_dir_path):
             os.makedirs(full_dir_path)
 
         full_file_path = os.path.join(root_dir, file)
         shutil.move(full_file_path, full_dir_path)
 
-def write_config_file(root_dir: str, extension: str, file_dir: str) -> None:
-    if not os.path.exists(DIRETORIO_CONFIG):
-        new_config_file(root_dir)
+def path_not_exist(path: str):
+    return not os.path.exists(path)
 
-    with open(DIRETORIO_CONFIG, 'r+') as f:
+def get_dirs(root_dir: str, settings_dir: str):
+    with open(settings_dir, 'r') as f:
+        config_file = json.loads(f.read())
+        diretorios = config_file['diretorios'][root_dir]
+    return diretorios
+
+def write_config_file(root_dir: str, ext: str, dir: str ) -> None:
+    contents_json = read_json(DIRETORIO_CONFIG)
+
+    with open(DIRETORIO_CONFIG, 'w') as f:
         try:
-            contents_json = json.loads(f.read())
-        except json.decoder.JSONDecodeError:
-            new_config_file(root_dir)
-            contents_json = json.loads(f.read())
+            contents_json['diretorios'][root_dir].update({ext: dir})
+        except KeyError:
+            contents_json['diretorios'][root_dir] = {}
+            contents_json['diretorios'][root_dir].update({ext: dir})
 
-        contents_json['diretorios'][root_dir][extension] = file_dir
-        f.seek(0)
         json.dump(contents_json, f)
         f.truncate()
 
-def new_config_file(root_dir: str) -> None:
+def read_json(settings_dir: str):
+    with open(settings_dir, 'a+') as f:
+        contents_json = f.read()
+        if file_is_not_empy(f):
+            print("e")
+            contents_json = json.loads(f.read())
+        else:          
+            print("nt")
+            contents_json = initial_configs('Downloads')
+    return contents_json
+
+def file_is_not_empy(f):
+    f.seek(0, os.SEEK_END)
+    e = f.tell()
+    f.seek(0)
+    return e
+
+def initial_configs(root_dir: str) -> dict:
     settings = {}
     settings['diretorios'] = {
         root_dir: { 
@@ -52,38 +82,19 @@ def new_config_file(root_dir: str) -> None:
             '.jpg': 'Imgens'
         }
     }
-
-    with open(DIRETORIO_CONFIG, 'w') as j:
-        j.write(json.dumps(settings))
-
-def teste():
-    root_dir = r'C:\Users\jonathan.santos\Desktop\unisc\MyFileOrganizer\testes'
-    write_config_file(root_dir, '.odt', 'Documentos')
-    move_files(root_dir)
+    return settings
 
 def observe_dirs(settings_path: str):
-    from watchdog.events import FileSystemEventHandler
-    from watchdog.observers import Observer
-
-    class MyEvent(FileSystemEventHandler):
-        def on_modified(self, event):
-            teste()
-    
     event_handler = MyEvent()
     observer = Observer()
-
-    with open(settings_path, 'r') as f:
-        jsonFile = json.loads(f.read())
-    
-    paths = jsonFile['diretorios'].keys()
+    paths = get_all_dirs(settings_path)
     observers = []
-    print(paths[0])
+
     for path in paths:
-        observer.schedule(event_handler, path)
+        observer.schedule(event_handler, path, recursive=False)
         observers.append(observer)
     
     observer.start()
-
     try:
         while True:
             time.sleep(1)
@@ -92,10 +103,18 @@ def observe_dirs(settings_path: str):
             o.stop()
             o.join()
 
+def get_all_dirs(settings_path: str) -> list:
+    with open(settings_path, 'r') as f:
+        jsonFile = json.loads(f.read())
+
+    return list(jsonFile['diretorios'].keys())
+
 def main():
-    observe_dirs(DIRETORIO_CONFIG)
+    # write_config_file(r'C:\Users\jonathan.santos\Desktop\unisc\MyFileOrganizer\testes', '.odt', 'Documentos')
+    write_config_file(r'C:\Users\jonathan.santos\Desktop\unisc\MyFileOrganizer\testes', '.pdf', 'Documentos')
 
+    # write_config_file(root_dir)
+    # observe_dirs(DIRETORIO_CONFIG)
 
-    
 if __name__ == '__main__':
     main()

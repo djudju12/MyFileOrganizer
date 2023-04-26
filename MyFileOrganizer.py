@@ -22,11 +22,13 @@ def move_files(root_dir: str) -> None:
 
     for file in files:
         _, extension = os.path.splitext(file)
+        if extension == '' or extension == '.ini':
+            continue
+        
         try:
             full_dir_path = os.path.join(root_dir, dir_for_extesion[extension.lower()])
         except KeyError:
-            if extension != '' or extension != '.ini':
-                print(f'Extensao "{extension}" nao esta configurada')
+            print(f'Extensao "{extension}" nao esta configurada')
             continue
 
         if path_not_exist(full_dir_path):

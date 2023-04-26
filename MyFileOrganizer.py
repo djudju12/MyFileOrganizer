@@ -1,5 +1,6 @@
 import json
 import os
+from pathlib import Path
 import shutil
 import time
 from watchdog.events import FileSystemEventHandler
@@ -22,9 +23,9 @@ def move_files(root_dir: str) -> None:
     for file in files:
         _, file_ext = os.path.splitext(file)
         try:
-            full_dir_path = os.path.join(root_dir, diretorios[file_ext])
+            full_dir_path = os.path.join(root_dir, diretorios[file_ext.lower()])
         except KeyError:
-            if file_ext != '':
+            if file_ext != '' or file_ext != '.ini':
                 print(f'Extensao "{file_ext}" nao esta configurada')
             continue
 
@@ -53,7 +54,7 @@ def write_config_file(root_dir: str, ext: str, dir: str ) -> None:
             contents_json['diretorios'][root_dir] = {}
             contents_json['diretorios'][root_dir].update({ext: dir})
 
-        json.dump(contents_json, f)
+        json.dump(contents_json, f, indent=4)
         f.truncate()
 
 def read_json(settings_dir: str):
@@ -64,7 +65,7 @@ def read_json(settings_dir: str):
             contents_json = json.loads(f.read())
         else:          
             print("nt")
-            contents_json = initial_configs('Downloads')
+            contents_json = initial_configs(str(Path.home() / 'Downloads'))
     return contents_json
 
 def file_is_not_empy(f):
@@ -79,7 +80,17 @@ def initial_configs(root_dir: str) -> dict:
         root_dir: { 
             '.mp3': 'Musicas',
             '.pdf': 'Documentos',
-            '.jpg': 'Imgens'
+            '.doc': 'Documentos',
+            '.odt': 'Documentos',
+            '.ods': 'Documentos',
+            '.jpg': 'Imgens',
+            '.png': 'Imgens',
+            '.csv': 'Planilhas',
+            '.xlsx': 'Planilhas',
+            '.zip': 'Zips',
+            '.sql': 'Consultas',
+            '.pls': 'Consultas',
+            '.exe': 'Executaveis',
         }
     }
     return settings
@@ -110,11 +121,12 @@ def get_all_dirs(settings_path: str) -> list:
     return list(jsonFile['diretorios'].keys())
 
 def main():
-    # write_config_file(r'C:\Users\jonathan.santos\Desktop\unisc\MyFileOrganizer\testes', '.odt', 'Documentos')
+    write_config_file(r'C:\Users\jonathan.santos\Desktop\unisc\MyFileOrganizer\testes', '.odt', 'Documentos')
     write_config_file(r'C:\Users\jonathan.santos\Desktop\unisc\MyFileOrganizer\testes', '.pdf', 'Documentos')
+    write_config_file(r'C:\Users\jonathan.santos\Desktop\unisc\MyFileOrganizer\testes', '.mp3', 'Musicas')
+    write_config_file(r'C:\Users\jonathan.santos\Desktop\unisc\MyFileOrganizer\testes', '.jpg', 'Imagens')
 
-    # write_config_file(root_dir)
-    # observe_dirs(DIRETORIO_CONFIG)
+    observe_dirs(DIRETORIO_CONFIG)
 
 if __name__ == '__main__':
     main()

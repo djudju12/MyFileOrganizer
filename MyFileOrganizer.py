@@ -18,15 +18,15 @@ class MyEvent(FileSystemEventHandler):
 def move_files(root_dir: str) -> None: 
     files = os.listdir(root_dir)
 
-    diretorios = get_dirs(root_dir, DIRETORIO_CONFIG)
+    dir_for_extesion = extesion_map(root_dir, DIRETORIO_CONFIG)
 
     for file in files:
-        _, file_ext = os.path.splitext(file)
+        _, extension = os.path.splitext(file)
         try:
-            full_dir_path = os.path.join(root_dir, diretorios[file_ext.lower()])
+            full_dir_path = os.path.join(root_dir, dir_for_extesion[extension.lower()])
         except KeyError:
-            if file_ext != '' or file_ext != '.ini':
-                print(f'Extensao "{file_ext}" nao esta configurada')
+            if extension != '' or extension != '.ini':
+                print(f'Extensao "{extension}" nao esta configurada')
             continue
 
         if path_not_exist(full_dir_path):
@@ -38,7 +38,7 @@ def move_files(root_dir: str) -> None:
 def path_not_exist(path: str):
     return not os.path.exists(path)
 
-def get_dirs(root_dir: str, settings_dir: str):
+def extesion_map(root_dir: str, settings_dir: str):
     with open(settings_dir, 'r') as f:
         config_file = json.loads(f.read())
         diretorios = config_file['diretorios'][root_dir]

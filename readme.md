@@ -33,7 +33,7 @@ Você pode usar caracters coringas no arquivo de configurações, por exemplo:
 {
     "diretorios": {
         "C:\\seu\\diretorio\\aqui": {
-            "bra[s|z]il_*.*": "brasil",
+            "bra[s|z]il_*": "brasil",
         }
     }
 }

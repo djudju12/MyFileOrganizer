@@ -1,6 +1,7 @@
 import json
 import os
 import shutil
+import time
 
 DIRETORIO_CONFIG = r'.\settings.json'
 
@@ -55,11 +56,45 @@ def new_config_file(root_dir: str) -> None:
     with open(DIRETORIO_CONFIG, 'w') as j:
         j.write(json.dumps(settings))
 
-def main():
+def teste():
     root_dir = r'C:\Users\jonathan.santos\Desktop\unisc\MyFileOrganizer\testes'
     write_config_file(root_dir, '.odt', 'Documentos')
     move_files(root_dir)
+
+def observe_dirs(settings_path: str):
+    from watchdog.events import FileSystemEventHandler
+    from watchdog.observers import Observer
+
+    class MyEvent(FileSystemEventHandler):
+        def on_modified(self, event):
+            teste()
     
+    event_handler = MyEvent()
+    observer = Observer()
+
+    with open(settings_path, 'r') as f:
+        jsonFile = json.loads(f.read())
+    
+    paths = jsonFile['diretorios'].keys()
+    observers = []
+    print(paths[0])
+    for path in paths:
+        observer.schedule(event_handler, path)
+        observers.append(observer)
+    
+    observer.start()
+
+    try:
+        while True:
+            time.sleep(1)
+    finally:
+        for o in observers:
+            o.stop()
+            o.join()
+
+def main():
+    observe_dirs(DIRETORIO_CONFIG)
+
 
     
 if __name__ == '__main__':

@@ -28,6 +28,17 @@ Configure as pastas e extensões que deja organizar no arquivo ```settings.json``
     }
 }
 ```
+Você pode usar caracters coringas no arquivo de configurações, por exemplo:
+```json
+{
+    "diretorios": {
+        "C:\\seu\\diretorio\\aqui": {
+            "bra[s|z]il_*.*": "brasil",
+        }
+    }
+}
+```
+Moverá todos os arquivos que comecem com "brasil_" ou "brazil_" para pasta "brasil" 
 
 É possível criar um arquivo de configuração com algumas extensões já configuradas:
 ```powershell

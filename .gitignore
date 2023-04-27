@@ -3,3 +3,4 @@ teste*
 venvPython
 settings.json
 activate*
+__pycache__

@@ -1,21 +1,15 @@
 import fnmatch
+from io import TextIOWrapper
 import json
 import os
 from pathlib import Path
 import shutil
-import time
-from watchdog.events import FileSystemEventHandler
-from watchdog.observers import Observer
+import subprocess
 import argparse
+import psutil
 
 DIRETORIO_CONFIG = r'settings.json'
-
-class MyEvent(FileSystemEventHandler):
-    def on_any_event(self, event):
-        paths_to_check = get_all_dirs(DIRETORIO_CONFIG)
-        for path in paths_to_check:
-            move_files(path)
-
+ARGUMENTS = ['python', 'MyEvent.py']
 
 def move_files(root_dir: str) -> None: 
     files = os.listdir(root_dir)
@@ -33,8 +27,14 @@ def move_files(root_dir: str) -> None:
         if path_not_exist(valid_dir):
             os.makedirs(valid_dir)
 
-        full_file_path = os.path.join(root_dir, file)
-        shutil.move(full_file_path, valid_dir)
+        try:
+            full_file_path = os.path.join(root_dir, file)
+            shutil.move(full_file_path, valid_dir)
+        except shutil.Error:
+            file = '(copy) ' + file
+            new_path = os.path.join(root_dir, file)
+            os.rename(full_file_path, new_path)
+            shutil.move(new_path, valid_dir)
 
 def is_file_in_settings(root_dir, extensions_dir, file):
     for ext in extensions_dir.keys():
@@ -74,18 +74,28 @@ def read_json(settings_dir: str):
         contents_json = f.read()
 
         # Retorna a estrutura do config vazia se o arquivo nao existir
-        if file_is_not_empy(f):
+        if file_is_not_empty(f):
             contents_json = json.loads(f.read())
         else:          
             contents_json = {'diretorios': {}}
 
     return contents_json
 
-def file_is_not_empy(f):
-    f.seek(0, os.SEEK_END)
-    e = f.tell()
-    f.seek(0)
+def file_is_not_empty(f):
+    if isinstance(f, str): # path
+        if path_not_exist(f):
+            return False
+        with open(f, 'r') as file:
+            return file_is_not_empty(file)
+    
+    if isinstance(f, TextIOWrapper):
+        f.seek(0, os.SEEK_END)
+        e = f.tell()
+        f.seek(0)
     return e
+
+def file_is_empty(f):
+    return not file_is_not_empty(f)
 
 def initial_extesions_config(root_dir: str) -> dict:
     return {
@@ -104,25 +114,6 @@ def initial_extesions_config(root_dir: str) -> dict:
             '*.exe': 'Executaveis'
         }
 
-def observe_dirs(settings_path: str):
-    event_handler = MyEvent()
-    observer = Observer()
-    paths = get_all_dirs(settings_path)
-    observers = []
-
-    for path in paths:
-        observer.schedule(event_handler, path, recursive=False)
-        observers.append(observer)
-    
-    observer.start()
-    try:
-        while True:
-            time.sleep(1)
-    finally:
-        for o in observers:
-            o.stop()
-            o.join()
-
 def get_all_dirs(settings_path: str) -> list:
     with open(settings_path, 'r') as f:
         jsonFile = json.loads(f.read())
@@ -140,16 +131,55 @@ def initiate_script(root_dir=None):
             print(f'Não foi possível localizar o Path => {root_dir}')
     write_config_file(root_dir)
 
-if __name__ == '__main__':
+def run_new_process():
+    proc = subprocess.Popen(ARGUMENTS)
+    with open('pid.txt', 'w') as f:
+        f.write(str(proc.pid))
+    print(f'process is now running. Pid => {proc.pid}')
+
+def is_process_runing(pid: int):
+    return psutil.pid_exists(pid)
+
+def pid_from_file():
+    with open('pid.txt', 'r') as f:
+        pid = int(f.read().strip())
+    return pid
+
+def kill_process(pid):
+    try:
+        proc = psutil.Process(pid)
+        print(f'process is now killed. Pid => {pid}')
+        proc.terminate()
+    except psutil.NoSuchProcess:
+        print('process is already dead')
+
+def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("-ini", action='store_true', help="Inicia o script")
-    parser.add_argument("-dir", nargs='?', const=None)
+    parser.add_argument("-ini", nargs='?',default=False, help="Inicia o script")
     parser.add_argument("-w", action='store_true', help="começa a observar os diretorios")
+    parser.add_argument("-k", action='store_true', help="mata o processo que assiste os diretorios")
     args = parser.parse_args()
 
-    if args.ini:
-        root_dir = args.dir 
-        initiate_script(root_dir)
-    
+    if args.ini or args.ini is None :
+        initiate_script(args.ini)
+
     if args.w:
-        observe_dirs(DIRETORIO_CONFIG)
+        if path_not_exist('pid.txt'):
+            run_new_process()
+        else:
+            if file_is_not_empty('pid.txt'):
+                if is_process_runing(pid_from_file()):
+                    print('process already runnings')
+                else:
+                    run_new_process()
+            else:
+                run_new_process()
+
+    if args.k:
+        if file_is_empty('pid.txt') or path_not_exist('pid.txt'):
+            print('nothing to kill')
+        else:
+            kill_process(pid_from_file())
+
+if __name__ == '__main__':
+    main()

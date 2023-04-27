@@ -1,9 +1,28 @@
 # Simples organizador de arquivos
-## Como utlizar
-Instale o modulo WatchDog 
+## Quick Start
+```
+pip install requiments.txt
+```
+
+```python 
+python3 MyFileOrganizer.py -ini
+```
+
+Isso gerará uma pasta padrão chamada downloads no seu diretório home
+
+Se você quiser customizar a pasta de instalação rápida 
 
 ```python
-pip install watchdog
+python3 MyFileOrganizer -ini -dir path/para/o/diretorio
+``` 
+
+seu settings.json ficará na pasta que o código fonte esta instalado.
+
+## Como utlizar
+Instale os modulos  
+
+```python
+pip install requiments.txt
 ```
 
 Configure as pastas e extensões que deja organizar no arquivo ```settings.json```:
@@ -41,16 +60,17 @@ Você pode, ou melhor, deve usar caracters coringas no arquivo de configurações, 
 Moverá todos os arquivos que comecem com "brasil_" ou "brazil_" para pasta "brasil" 
 
 É possível criar um arquivo de configuração com algumas extensões já configuradas:
-```powershell
-python MyFileOrganizer.py --S --D "C:\seu\dir\aqui"
+```
+python MyFileOrganizer.py -ns 
 ```
 
 Para ativar o Script digite:
-```powershell
-python MyFileOrganizer.py --L
+```
+python MyFileOrganizer.py -w
 ```
 Para ativar sempre que ligar o computador:
 
 Para desativar digite:
 
 # TODO
+

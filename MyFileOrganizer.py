@@ -2,13 +2,13 @@ import fnmatch
 import json
 import os
 from pathlib import Path
-import re
 import shutil
 import time
 from watchdog.events import FileSystemEventHandler
 from watchdog.observers import Observer
+import argparse
 
-DIRETORIO_CONFIG = r'.\settings.json'
+DIRETORIO_CONFIG = r'settings.json'
 
 class MyEvent(FileSystemEventHandler):
     def on_any_event(self, event):
@@ -51,28 +51,46 @@ def extesion_map(root_dir: str, settings_dir: str):
         diretorios = config_file['diretorios'][root_dir]
     return diretorios
 
-def write_config_file(root_dir: str, ext: str, dir: str ) -> None:
-    contents_json = read_json(DIRETORIO_CONFIG)
+def write_config_file(root_dir=None, ext=None, dir=None) -> None:
+    contents_json = read_json(DIRETORIO_CONFIG, root_dir)
+
 
     with open(DIRETORIO_CONFIG, 'w') as f:
-        try:
-            contents_json['diretorios'][root_dir].update({ext: dir})
-        except KeyError:
-            contents_json['diretorios'][root_dir] = {}
-            contents_json['diretorios'][root_dir].update({ext: dir})
+        inserir_novo = True
 
+        # Checa se existe o diretorio no arquivo de configuracao
+        for diretorio in contents_json['diretorios']:
+
+            # Se existe o diretorio e há algo para inserir entao faz
+            if root_dir in diretorio:
+                if all([ext, dir]):
+                    diretorio.update({ext: dir})
+
+                # avisa que nao será necessario appendar
+                inserir_novo = False
+                break
+        
+        # Se necessario, appenda a nova configuraçao de diretorio
+        if inserir_novo:
+            if all([ext, dir]):
+                contents_json['diretorios'].append({root_dir : {ext: dir}})
+            else:
+                contents_json['diretorios'].append(initial_extesions_config(root_dir))
+
+        # cria o json
         json.dump(contents_json, f, indent=4)
         f.truncate()
 
 def read_json(settings_dir: str):
     with open(settings_dir, 'a+') as f:
         contents_json = f.read()
+
+        # Retorna a estrutura do config vazia se o arquivo nao existir
         if file_is_not_empy(f):
-            print("e")
             contents_json = json.loads(f.read())
         else:          
-            print("nt")
-            contents_json = initial_configs(str(Path.home() / 'Downloads'))
+            contents_json = {'diretorios': []}
+
     return contents_json
 
 def file_is_not_empy(f):
@@ -81,25 +99,29 @@ def file_is_not_empy(f):
     f.seek(0)
     return e
 
-def initial_configs(root_dir: str) -> dict:
-    settings = {}
-    settings['diretorios'] = {
-        root_dir: { 
-            '*.mp3': 'Musicas',
-            '*.pdf': 'Documentos',
-            '*.doc': 'Documentos',
-            '*.odt': 'Documentos',
-            '*.ods': 'Documentos',
-            '*.jpg': 'Imgens',
-            '*.png': 'Imgens',
-            '*.csv': 'Planilhas',
-            '*.xlsx': 'Planilhas',
-            '*.zip': 'Zips',
-            '*.sql': 'Consultas',
-            '*.pls': 'Consultas',
-            '*.exe': 'Executaveis',
+def initial_extesions_config(root_dir: str) -> dict:
+    return {
+            root_dir: { 
+                '*.mp3': 'Musicas',
+                '*.pdf': 'Documentos',
+                '*.doc': 'Documentos',
+                '*.odt': 'Documentos',
+                '*.ods': 'Documentos',
+                '*.jpg': 'Imagens',
+                '*.png': 'Imagens',
+                '*.csv': 'Planilhas',
+                '*.xlsx': 'Planilhas',
+                '*.zip': 'Zips',
+                '*.sql': 'Consultas',
+                '*.pls': 'Consultas',
+                '*.exe': 'Executaveis'
+           }
         }
-    }
+
+def initial_configs(root_dir: str) -> list[dict]:
+    settings = {}
+    settings['diretorios'] = [initial_extesions_config(root_dir)]
+    
     return settings
 
 def observe_dirs(settings_path: str):
@@ -127,13 +149,23 @@ def get_all_dirs(settings_path: str) -> list:
 
     return list(jsonFile['diretorios'].keys())
 
-def main():
-    write_config_file(r'C:\Users\jonathan.santos\Desktop\unisc\MyFileOrganizer\testes', '*.odt', 'Documentos')
-    write_config_file(r'C:\Users\jonathan.santos\Desktop\unisc\MyFileOrganizer\testes', '*.pdf', 'Documentos')
-    write_config_file(r'C:\Users\jonathan.santos\Desktop\unisc\MyFileOrganizer\testes', '*.mp3', 'Musicas')
-    write_config_file(r'C:\Users\jonathan.santos\Desktop\unisc\MyFileOrganizer\testes', '*.jpg', 'Imagens')
+def initiate_script(root_dir=None):
+    if root_dir is None:
+        root_dir = str(Path.home()/'Downloads')
 
-    observe_dirs(DIRETORIO_CONFIG)
+    if path_not_exist(root_dir):
+        os.mkdir(root_dir)
+
+    write_config_file(root_dir)
+    # observe_dirs(DIRETORIO_CONFIG)
 
 if __name__ == '__main__':
-    main()
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-ini", action='store_true', help="Inicia o script")
+    parser.add_argument("-dir", nargs='?', const=None)
+
+    args = parser.parse_args()
+
+    if args.ini:
+        root_dir = args.dir 
+        initiate_script(root_dir)

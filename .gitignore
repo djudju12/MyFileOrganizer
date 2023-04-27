@@ -3,3 +3,4 @@ testes
 venvPython
 settings.json
 *.ps1
+*.bash

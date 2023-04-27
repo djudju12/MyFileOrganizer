@@ -5,3 +5,4 @@ settings.json
 activate*
 __pycache__
 pid.txt
+*.bat

@@ -14,7 +14,6 @@ def observe_dirs(settings_path: str):
     event_handler = MyEvent()
     observer = Observer()
     paths = get_all_dirs(settings_path)
-    print(paths)
     observers = []
 
     for path in paths:

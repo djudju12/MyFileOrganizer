@@ -10,13 +10,30 @@ import psutil
 
 DIRETORIO_CONFIG = r'settings.json'
 ARGUMENTS = ['python', 'MyEvent.py']
+INITIAL_CONFIG = {
+    "*.mp3" : "Musicas",
+    "*.pdf" : "Documentos",
+    "*.doc" : "Documentos",
+    "*.docx": "Documentos",
+    "*.odt" : "Documentos",
+    "*.ods" : "Documentos",
+    "*.jpeg": "Imagens",
+    "*.jpg" : "Imagens",
+    "*.png" : "Imagens",
+    "*.csv" : "Planilhas",
+    "*.xlsx": "Planilhas",
+    "*.zip" : "Zips",
+    "*.sql" : "Consultas",
+    "*.pls" : "Consultas",
+    "*.exe" : "Executaveis"
+}
 
 def move_files(root_dir: str) -> None: 
     files = os.listdir(root_dir)
     extension_dir_map = extesion_map(root_dir, DIRETORIO_CONFIG)
 
     for file in files:
-        if file == '' or file == '.ini' or '.' not in file:
+        if not_valid_file(file):
             continue
 
         valid_dir = is_file_in_settings(root_dir, extension_dir_map, file)
@@ -35,6 +52,18 @@ def move_files(root_dir: str) -> None:
             new_path = os.path.join(root_dir, file)
             os.rename(full_file_path, new_path)
             shutil.move(new_path, valid_dir)
+
+def not_valid_file(file):
+    invalids_formats = ['*.ini', '', '*.crdownload', '*.temp']
+    if file_is_folder(file):
+        return True
+    for format in invalids_formats:
+        if fnmatch.fnmatch(file, format):
+            return True
+    return False
+
+def file_is_folder(file):
+    return not fnmatch.fnmatch(file, '*.*')
 
 def is_file_in_settings(root_dir, extensions_dir, file):
     for ext in extensions_dir.keys():
@@ -98,21 +127,7 @@ def file_is_empty(f):
     return not file_is_not_empty(f)
 
 def initial_extesions_config(root_dir: str) -> dict:
-    return {
-            '*.mp3': 'Musicas',
-            '*.pdf': 'Documentos',
-            '*.doc': 'Documentos',
-            '*.odt': 'Documentos',
-            '*.ods': 'Documentos',
-            '*.jpg': 'Imagens',
-            '*.png': 'Imagens',
-            '*.csv': 'Planilhas',
-            '*.xlsx': 'Planilhas',
-            '*.zip': 'Zips',
-            '*.sql': 'Consultas',
-            '*.pls': 'Consultas',
-            '*.exe': 'Executaveis'
-        }
+    return INITIAL_CONFIG
 
 def get_all_dirs(settings_path: str) -> list:
     with open(settings_path, 'r') as f:
@@ -169,7 +184,7 @@ def main():
         else:
             if file_is_not_empty('pid.txt'):
                 if is_process_runing(pid_from_file()):
-                    print('process already runnings')
+                    print('process is already running')
                 else:
                     run_new_process()
             else:

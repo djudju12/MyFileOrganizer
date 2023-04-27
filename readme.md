@@ -23,16 +23,6 @@ python MyFileOrganizer -w
 
 seu settings.json ficará na pasta que o código fonte esta instalado.
 
-## importante
-Se você chama o python de outra forma altere no ```MyFileOrganizer.py``` na variavel argumentos:
-
-```python
-ARGUMENTS = ['python', 'MyEvent.py']
-# ou
-ARGUMENTS = ['python3', 'MyEvent.py']
-# ou
-ARGUMENTS = ['py', 'MyEvent.py']
-```
 ## Como utlizar
 Instale os modulos  
 
@@ -85,7 +75,16 @@ python MyFileOrganizer.py -w
   python MyFileOrganizer.py -w
   ```
 Acredito que seja necessário instalar o WatchDog globalmente para isso
+## ! importante !
+Se você chama o python de outra forma altere no ```MyFileOrganizer.py``` na variavel argumentos:
 
+```python
+ARGUMENTS = ['python', 'MyEvent.py']
+# ou
+ARGUMENTS = ['python3', 'MyEvent.py']
+# ou
+ARGUMENTS = ['py', 'MyEvent.py']
+```
 ## Para desativar digite:
 ```cmd
 python MyFileOrganizer.py -k 

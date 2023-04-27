@@ -1,6 +1,5 @@
 venvPython
-testes
+teste*
 venvPython
 settings.json
-*.ps1
-*.bash
+activate*

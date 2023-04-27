@@ -52,30 +52,18 @@ def extesion_map(root_dir: str, settings_dir: str):
     return diretorios
 
 def write_config_file(root_dir=None, ext=None, dir=None) -> None:
-    contents_json = read_json(DIRETORIO_CONFIG, root_dir)
-
+    contents_json = read_json(DIRETORIO_CONFIG)
 
     with open(DIRETORIO_CONFIG, 'w') as f:
-        inserir_novo = True
-
-        # Checa se existe o diretorio no arquivo de configuracao
-        for diretorio in contents_json['diretorios']:
-
-            # Se existe o diretorio e há algo para inserir entao faz
-            if root_dir in diretorio:
-                if all([ext, dir]):
-                    diretorio.update({ext: dir})
-
-                # avisa que nao será necessario appendar
-                inserir_novo = False
-                break
-        
-        # Se necessario, appenda a nova configuraçao de diretorio
-        if inserir_novo:
+        # Se existe o diretorio e há algo para inserir entao faz
+        if root_dir in contents_json:
             if all([ext, dir]):
-                contents_json['diretorios'].append({root_dir : {ext: dir}})
+                contents_json['diretorios'][root_dir].update({ext: dir})
+        else:
+            if all([ext, dir]):
+                contents_json['diretorios'][root_dir] = {ext: dir}
             else:
-                contents_json['diretorios'].append(initial_extesions_config(root_dir))
+                contents_json['diretorios'][root_dir] = initial_extesions_config(root_dir)
 
         # cria o json
         json.dump(contents_json, f, indent=4)
@@ -89,7 +77,7 @@ def read_json(settings_dir: str):
         if file_is_not_empy(f):
             contents_json = json.loads(f.read())
         else:          
-            contents_json = {'diretorios': []}
+            contents_json = {'diretorios': {}}
 
     return contents_json
 
@@ -101,28 +89,20 @@ def file_is_not_empy(f):
 
 def initial_extesions_config(root_dir: str) -> dict:
     return {
-            root_dir: { 
-                '*.mp3': 'Musicas',
-                '*.pdf': 'Documentos',
-                '*.doc': 'Documentos',
-                '*.odt': 'Documentos',
-                '*.ods': 'Documentos',
-                '*.jpg': 'Imagens',
-                '*.png': 'Imagens',
-                '*.csv': 'Planilhas',
-                '*.xlsx': 'Planilhas',
-                '*.zip': 'Zips',
-                '*.sql': 'Consultas',
-                '*.pls': 'Consultas',
-                '*.exe': 'Executaveis'
-           }
+            '*.mp3': 'Musicas',
+            '*.pdf': 'Documentos',
+            '*.doc': 'Documentos',
+            '*.odt': 'Documentos',
+            '*.ods': 'Documentos',
+            '*.jpg': 'Imagens',
+            '*.png': 'Imagens',
+            '*.csv': 'Planilhas',
+            '*.xlsx': 'Planilhas',
+            '*.zip': 'Zips',
+            '*.sql': 'Consultas',
+            '*.pls': 'Consultas',
+            '*.exe': 'Executaveis'
         }
-
-def initial_configs(root_dir: str) -> list[dict]:
-    settings = {}
-    settings['diretorios'] = [initial_extesions_config(root_dir)]
-    
-    return settings
 
 def observe_dirs(settings_path: str):
     event_handler = MyEvent()
@@ -146,7 +126,7 @@ def observe_dirs(settings_path: str):
 def get_all_dirs(settings_path: str) -> list:
     with open(settings_path, 'r') as f:
         jsonFile = json.loads(f.read())
-
+    # Retorna uma lista com os diretorios que deverão ser assitidos
     return list(jsonFile['diretorios'].keys())
 
 def initiate_script(root_dir=None):
@@ -154,18 +134,22 @@ def initiate_script(root_dir=None):
         root_dir = str(Path.home()/'Downloads')
 
     if path_not_exist(root_dir):
-        os.mkdir(root_dir)
-
+        try:
+            os.mkdir(root_dir)
+        except FileNotFoundError:
+            print(f'Não foi possível localizar o Path => {root_dir}')
     write_config_file(root_dir)
-    # observe_dirs(DIRETORIO_CONFIG)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument("-ini", action='store_true', help="Inicia o script")
     parser.add_argument("-dir", nargs='?', const=None)
-
+    parser.add_argument("-w", action='store_true', help="começa a observar os diretorios")
     args = parser.parse_args()
 
     if args.ini:
         root_dir = args.dir 
         initiate_script(root_dir)
+    
+    if args.w:
+        observe_dirs(DIRETORIO_CONFIG)

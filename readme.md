@@ -15,6 +15,11 @@ Se você quiser customizar a pasta de instalação rápida
 ```python
 python3 MyFileOrganizer -ini -dir path/para/o/diretorio
 ``` 
+Ativará o script
+
+```python
+python3 MyFileOrganizer -w
+``` 
 
 seu settings.json ficará na pasta que o código fonte esta instalado.
 
@@ -58,11 +63,6 @@ Você pode, ou melhor, deve usar caracters coringas no arquivo de configurações, 
 }
 ```
 Moverá todos os arquivos que comecem com "brasil_" ou "brazil_" para pasta "brasil" 
-
-É possível criar um arquivo de configuração com algumas extensões já configuradas:
-```
-python MyFileOrganizer.py -ns 
-```
 
 Para ativar o Script digite:
 ```

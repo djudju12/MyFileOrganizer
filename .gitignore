@@ -1,6 +1,10 @@
 venvPython
-testes
+teste*
 venvPython
 settings.json
 *.ps1
 *.sh
+activate*
+__pycache__
+pid.txt
+*.bat

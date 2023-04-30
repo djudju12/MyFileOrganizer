@@ -9,7 +9,7 @@ import argparse
 import psutil
 
 DIRETORIO_CONFIG = r'settings.json'
-ARGUMENTS = ['python', 'MyEvent.py']
+ARGUMENTS = ['python3', 'MyEvent.py']
 INITIAL_CONFIG = {
     "*.mp3" : "Musicas",
     "*.pdf" : "Documentos",

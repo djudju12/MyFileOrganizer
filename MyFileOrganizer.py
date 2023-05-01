@@ -8,8 +8,8 @@ import subprocess
 import argparse
 import psutil
 
-DIRETORIO_CONFIG = r'settings.json'
-ARGUMENTS = ['python3', 'MyEvent.py']
+DIRETORIO_CONFIG = r'/home/jonathan/programacao/MyFileOrganizer/settings.json'
+ARGUMENTS = ['python3', r'/home/jonathan/programacao/MyFileOrganizer/MyEvent.py']
 INITIAL_CONFIG = {
     "*.mp3" : "Musicas",
     "*.pdf" : "Documentos",
@@ -27,6 +27,7 @@ INITIAL_CONFIG = {
     "*.pls" : "Consultas",
     "*.exe" : "Executaveis"
 }
+PID_DIR = r'/home/jonathan/programacao/MyFileOrganizer/pid.txt'
 
 def move_files(root_dir: str) -> None: 
     files = os.listdir(root_dir)
@@ -148,7 +149,7 @@ def initiate_script(root_dir=None):
 
 def run_new_process():
     proc = subprocess.Popen(ARGUMENTS)
-    with open('pid.txt', 'w') as f:
+    with open(PID_DIR, 'w') as f:
         f.write(str(proc.pid))
     print(f'process is now running. Pid => {proc.pid}')
 
@@ -156,7 +157,7 @@ def is_process_runing(pid: int):
     return psutil.pid_exists(pid)
 
 def pid_from_file():
-    with open('pid.txt', 'r') as f:
+    with open(PID_DIR, 'r') as f:
         pid = int(f.read().strip())
     return pid
 
@@ -179,10 +180,10 @@ def main():
         initiate_script(args.ini)
 
     if args.w:
-        if path_not_exist('pid.txt'):
+        if path_not_exist(PID_DIR):
             run_new_process()
         else:
-            if file_is_not_empty('pid.txt'):
+            if file_is_not_empty(PID_DIR):
                 if is_process_runing(pid_from_file()):
                     print('process is already running')
                 else:
@@ -191,7 +192,7 @@ def main():
                 run_new_process()
 
     if args.k:
-        if file_is_empty('pid.txt') or path_not_exist('pid.txt'):
+        if file_is_empty(PID_DIR) or path_not_exist(PID_DIR):
             print('nothing to kill')
         else:
             kill_process(pid_from_file())
